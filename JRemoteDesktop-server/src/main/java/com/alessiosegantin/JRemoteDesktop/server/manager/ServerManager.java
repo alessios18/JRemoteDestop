@@ -5,6 +5,7 @@ package com.alessiosegantin.JRemoteDesktop.server.manager;
 
 import java.awt.AWTException;
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
@@ -45,13 +46,18 @@ public class ServerManager extends Thread {
 		Rectangle rectangle = null;
 		GraphicsEnvironment gEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice gDev = gEnv.getDefaultScreenDevice();
+		
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	    GraphicsDevice[] gds = ge.getScreenDevices();
+	    GraphicsConfiguration gc = gds[1].getDefaultConfiguration();
+	    Rectangle rect = gc.getBounds();
 
 		Dimension dim=Toolkit.getDefaultToolkit().getScreenSize();
-		int w = (int) ((100/dim.getWidth())*10);
-		int h = (int) ((100/dim.getHeight())*10);
+		int w = (int) rect.getWidth();
+		int h = (int) rect.getHeight();
 		width=""+w;
 		height=""+h;
-		rectangle=new Rectangle(dim);
+		rectangle=rect;
 		try {
 			robot=new Robot(gDev);
 			logger.info("Awaiting Connection from Client");
@@ -62,6 +68,7 @@ public class ServerManager extends Thread {
 					controlStream = new DataOutputStream(sc.getOutputStream());
 					controlStream.writeUTF(width);
 					controlStream.writeUTF(height);
+					logger.info("W: "+ width + " - H: "+ height);
 					ss = new ScreenStream(sc, rectangle, robot);
 				} catch (IOException e) {
 					if(!(e instanceof SocketTimeoutException)) {

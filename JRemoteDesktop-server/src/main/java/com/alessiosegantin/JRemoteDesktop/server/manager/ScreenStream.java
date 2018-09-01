@@ -6,9 +6,11 @@ package com.alessiosegantin.JRemoteDesktop.server.manager;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
 
@@ -40,13 +42,20 @@ public class ScreenStream extends Thread {
 			while(isRunning){
 				BufferedImage image=robot.createScreenCapture(ret);
 				try{
-					ImageIO.write(image,"jpeg",oos);
+					OutputStream outputStream = sc.getOutputStream();
+					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			        ImageIO.write(image, "jpg", byteArrayOutputStream);
+
+			        byte[] size = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
+			        outputStream.write(size);
+			        outputStream.write(byteArrayOutputStream.toByteArray());
+			        outputStream.flush();
 				}catch(IOException ex){
 					logger.error(ex.getMessage(), ex);
 					isRunning = false;
 				}
 				try{
-					Thread.sleep(10);
+					Thread.sleep(100);
 				}catch(InterruptedException e){
 					logger.error(e.getMessage(), e);
 					isRunning = false;
